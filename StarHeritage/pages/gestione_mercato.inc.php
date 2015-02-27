@@ -57,16 +57,18 @@
       }
       /* Se e' stato richiesto di assegnare un oggetto al mercato o ad un PG */
       if ((gdrcd_filter('get', $_POST['op']) == 'assign') && (gdrcd_filter('num', $_POST['num_oggetti']) > 0)) {
-        if ($_POST['give_item'] == 'mercato') {
-          $result = gdrcd_query("SELECT id_oggetto FROM mercato WHERE id_oggetto = " . $_POST['id_oggetto'] . "", 'result');
-
+        if ($_POST['give_item'] == 'mercato' || $_POST['give_item'] == 'mercato_nero') {
+          $nero = 0;
+          if ($_POST['give_item'] == 'mercato_nero')
+            $nero = 1;
+          //
+          $result = gdrcd_query("SELECT id_oggetto FROM mercato WHERE id_oggetto = " . $_POST['id_oggetto'] . " and nero = " . $nero, 'result');
           if (gdrcd_query($result, 'num_rows') > 0) {
             gdrcd_query($result, 'free');
             $query = "UPDATE mercato SET numero = " . gdrcd_filter('num', $_POST['num_oggetti']) . " WHERE id_oggetto = " . gdrcd_filter('num', $_POST['id_oggetto']) . "";
           } else {
-            $query = "INSERT INTO mercato (id_oggetto, numero) VALUES (" . gdrcd_filter('num', $_POST['id_oggetto']) . ", " . gdrcd_filter('num', $_POST['num_oggetti']) . ")";
+            $query = "INSERT INTO mercato (id_oggetto, numero, nero) VALUES (" . gdrcd_filter('num', $_POST['id_oggetto']) . ", " . gdrcd_filter('num', $_POST['num_oggetti']) . ", " . $nero . ")";
           }
-
           gdrcd_query($query);
         } else {
 
@@ -396,16 +398,16 @@
             <?php if (isset($loaded_item) == TRUE) { ?>
           <input type="hidden" name="op" value="update" />
           <input type="hidden" name="id_oggetto" value="<?php echo $loaded_item['id_oggetto']; ?>" />
-              <?php } else { ?>
+  <?php } else { ?>
           <input type="hidden" name="op" value="insert" />
-                <?php } ?>
+              <?php } ?>
 
         <div class='form_submit'>
           <input type="submit" name="modifica" value="<?php echo gdrcd_filter('out', $MESSAGE['interface']['forms']['submit']); ?>" />
               <?php if (isset($loaded_item) == TRUE) { ?>
             <input type="submit" name="elimina" value="<?php echo gdrcd_filter('out', $MESSAGE['interface']['forms']['delete']); ?>" />
             <input type="submit" name="annulla" value="<?php echo gdrcd_filter('out', $MESSAGE['interface']['forms']['cancel']); ?>" />
-            <?php } ?>
+              <?php } ?>
         </div>
 
       </form>
@@ -420,7 +422,7 @@
             </div>
 
             <div class='form_label'>
-        <?php echo gdrcd_filter('out', $MESSAGE['interface']['administration']['items']['number_item']); ?>
+    <?php echo gdrcd_filter('out', $MESSAGE['interface']['administration']['items']['number_item']); ?>
             </div>
 
             <div class='form_field'>
@@ -428,13 +430,14 @@
             </div>
 
             <div class='form_label'>
-    <?php echo gdrcd_filter('out', $MESSAGE['interface']['administration']['items']['destination_item']); ?>
+      <?php echo gdrcd_filter('out', $MESSAGE['interface']['administration']['items']['destination_item']); ?>
             </div>
 
             <div class='form_field'>
     <?php if (gdrcd_query($characters, 'num_rows') > 0) { ?>
                 <select name="give_item">
                   <option value="mercato"><?php echo gdrcd_filter('out', $PARAMETERS['names']['market_name']); ?></option>
+                  <option value="mercato_nero">Mercato Nero</option>
       <?php while ($option = gdrcd_query($characters, 'fetch')) { ?>
                     <option value="<?php echo $option['nome']; ?>">
         <?php echo gdrcd_filter('out', $option['nome']); ?>
